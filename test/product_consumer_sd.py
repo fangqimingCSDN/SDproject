@@ -85,7 +85,6 @@ class consumer(threading.Thread):
             select_sql = "select ip,port from sd_host where `status`=1;"
             cursor.execute(select_sql)
             data = cursor.fetchall()
-            #[('101.42.242.227', '7860', 0), ('192.168.1.192', '7860', 0)]
             for arg in data:
                 ip, port = arg[0], arg[1]
                 request_url = f"http://{ip}:{port}/sdapi/v1/progress"
@@ -131,6 +130,8 @@ class consumer(threading.Thread):
                                 if db:
                                     db.close()
                                 raise f"数据库连接失败,请检查数据库连接信息,具体{e}"
+                        else:
+                            logger.info(f"{update_sql}更新成功！")
 
                         try:
                             db.commit()
