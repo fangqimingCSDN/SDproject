@@ -1,0 +1,187 @@
+安装安装安装安装
+pip install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+启动
+接口程序启动方式
+nohup python3 -u manage.py runserver 0.0.0.0:8888 > web.log 2>&1  &
+sd服务扩容生产和消费服务启动
+nohup python3 -u  product_consumer_sd.py > product_consumer.log 2>&1 &
+sd服务扩容后界面ui启动
+nohup python3 -u sd_ui.py > sdui.log 2>&1 &
+sd服务扩容后监控主机状态启动
+nohup python3 -u gradio_monitor.py  >monitor.log 2>&1 &
+
+kill方法
+pkill -f sd_ui.py -9
+pkill -f gradio_monitor.py -9
+pkill -f manage.py -9
+pkill -f product_consumer_sd.py -9
+pkill -f sd_project -9
+
+配置配置配置配置配置
+本地测试配置
+//{
+//  "web_server": "192.168.1.191",
+//  "web_port": "8888",
+//  "mysql_password": "123456",
+//  "mysql_user": "root",
+//  "mysql_database": "SD_DB",
+//  "mysql_port": 3306,
+//  "mysql_host": "127.0.0.1"
+//}
+{
+  "web_server": "192.168.1.192",
+  "web_port": "8888",
+  "mysql_password": "tarena",
+  "mysql_user": "root",
+  "mysql_database": "SD_DB",
+  "mysql_port": 3306,
+  "mysql_host": "192.168.1.191"
+}
+请求参数配置说明：
+{
+"prompt": "a little cat",#正向反馈
+"negative_prompt": "no white", #反向提示词
+"batch_size": 1,#每批生成的数量, 建议设置为1
+"n_iter": 1,#n_iter参数控制了在搜索中允许的超参数组合的随机选择的迭代次数。
+"steps": 5,#生成图片的迭代步数，每多一次迭代都会给 AI 更多的机会去比对 prompt 和 当前结果，去调整图片。\更高的步数需要花费更多的计算时间，也相对更贵。但不一定意味着更好的结果。当然迭代步数不足（少于 50）肯定会降低结果的图像质量；
+"cfg_scale": 7,#分类器自由引导尺度——图像与提示符的一致程度——越低的值产生越有创意的结果；默认7
+"width": 512,#图像长宽，可以通过send to extras 进行扩大，所以这里不建议设置太大[显存小的特别注意]；
+"height": 512,
+“seed”: -1# 种子数，只要中子数一样，参数一致、模型一样图像就能重新；
+}
+细节详解
+https://zhuanlan.zhihu.com/p/626617993
+cfg_scale根据我在知乎上的搜索结果，stable-diffusion-webui 的 cfg_scale 参数可以变更图像与提示符的一致程度，增加这个值将导致图像更接近你的提示，但过高会让图像色彩过于饱和。一般开到 7~11。建议3-16设置区间
+
+使用无mysql缓存方案
+select SQL_NO_CACHE t.task_id,now()  from sd_task_process t where `status`=0 and TIMESTAMPDIFF(MINUTE, t.create_time, NOW())<=30 ORDER BY t.create_time ASC LIMIT 100;
+
+
+参考链接（介绍， 模型下载， 如何生成图的提示词输入方法）
+https://zhuanlan.zhihu.com/p/617997179
+
+sd服务启动命令：
+python3 launch.py --no-half --port 7860 --listen --api  --skip-torch-cuda-test  --no-gradio-queue
+nohup python3 launch.py --no-half --port 7860 --listen --api  --skip-torch-cuda-test  --no-gradio-queue >launch.log 2>&1 &
+另外--nowebui参数， 配置只是启用api接口， 未启用web, 并且能查看到接口文档
+nohup python3 -u launch.py --no-half --port 7860 --listen --nowebui --api-log --skip-torch-cuda-test  --no-gradio-queue >launch.log 2>&1 &
+另外--api-log参数，使用API -log=True启用所有API请求的日志记录
+
+启动参数配置说明
+--no-half
+不要将模型切换到16位浮点数，推荐设置
+--listen
+以0.0.0.0作为服务器名启动grado，允许响应网络请求
+--port 7860
+设置端口
+--no-gradio-queue
+禁用梯度队列;导致网页使用HTTP请求而不是websockets;是早期版本的默认值吗
+如果不设置 会使用websockets协议，
+--nowebui
+使用api=True来启动api而不是web
+--api
+Api和web一起运行
+
+
+
+安装问题
+https://packages.ubuntu.com/focal/libqgispython3.10.4 源的问题 ，在这里可以搜索对应包需要的源
+ubuntu18.04安装python3.10
+您可以使用以下列表中的任何一个源镜像只要往您的 /etc/apt/sources.list 文件中像下面这样添加一行:
+deb http://cz.archive.ubuntu.com/ubuntu focal main universe
+
+sudo aptitude install <package-name>
+
+centos-python3.10.5安装需要提前配置如下
+yum install libffi-devel
+yum -y install bzip2 bzip2-devel
+yum -y install sqlite-devel
+pip3 install  backports.lzma --default-timeout=100 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip安装可以使用以下源
+--default-timeout=100 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+推荐链接：
+https://publicprompts.art/   提示词案例
+https://www.aizuohua.com/#/aicz  案例分享  √
+http://tag.zoos.life/  咒语词典 AI绘画Tag工具 提词必备神器
+https://sfkgroup.github.io/cures_dictionaries.html  tag生成器
+http://wolfchen.top/tag/  NovelAI tag生成器 V2.1  √
+https://zhuanlan.zhihu.com/p/623966514 prompt语法  √
+
+{提示词} 等价于 (提示词:1.05)
+(提示词) 等价于 (提示词:1.1)
+[提示词] 等价于 (提示词:0.952) 即 1/1.05
+使用[[xxxx]]减低权重, {{xxxx}}提升权重
+
+
+nginx负载均衡方式实现扩容方案
+https://www.jianshu.com/p/dd5be63c7d14
+
+/opt/confs/nginx.conf配置如下
+events
+{
+  use epoll;
+  worker_connections 65535;
+}
+error_log /var/log/nginx/error.log info;
+http
+{
+    upstream webhost {
+        ip_hash;
+        server 192.168.1.244:7860 ;
+        server 192.168.1.192:7860 ;
+    }
+    server
+    {
+        listen 80;
+        server_name 192.168.1.191;
+        location / {
+            proxy_pass http://webhost;
+            proxy_redirect off;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+            client_max_body_size 10m;
+            client_body_buffer_size 128k;#缓冲区代理缓冲用户端请求的最大字节数,
+            proxy_connect_timeout 1800;#nginx跟后端服务器连接超时时间(代理连接超时)
+            proxy_send_timeout 1800;#后端服务器数据回传时间(代理发送超时)
+            proxy_read_timeout 600;#连接成功后,后端服务器响应时间(代理接收超时)
+            proxy_buffer_size 4k;
+            proxy_buffers 4 10m;
+            proxy_busy_buffers_size 20m;
+            proxy_temp_file_write_size 30m;
+        }
+    }
+}
+
+
+
+
+2023-05-17T07:05:52.963284205Z 2023/05/17 07:05:52 [error] 22#22: *9 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 10.200.1.99, server: 192.168.1.191, request: "POST /run/predict HTTP/1.1", upstream: "http://192.168.1.244:7860/run/predict", host: "192.168.1.191:8888", referrer: "http://192.168.1.191:8888/"
+清楚mysql数据库缓存方法set query_cache_type=0;
+django 日志配置
+https://blog.csdn.net/tofu_yi/article/details/118566756
+线程挂掉重启机制
+https://www.zhihu.com/question/597713593#:~:text=%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%20Python%20%E7%9A%84%20multiprocessing%20%E6%A8%A1%E5%9D%97%E6%9D%A5%E5%AE%9E%E7%8E%B0%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%E5%92%8C%E9%87%8D%E5%90%AF%EF%BC%8C%E5%9B%A0%E4%B8%BA%E6%AF%8F%E4%B8%AA%E5%AD%90%E8%BF%9B%E7%A8%8B%E6%98%AF%E7%8B%AC%E7%AB%8B%E7%9A%84%EF%BC%8C%E5%BD%93%E5%85%B6%E4%B8%AD%E4%B8%80%E4%B8%AA%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8C%E5%85%B6%E4%BB%96%E8%BF%9B%E7%A8%8B%E4%BB%8D%E7%84%B6%E5%8F%AF%E4%BB%A5%E7%BB%A7%E7%BB%AD%E8%BF%90%E8%A1%8C%E3%80%82,%E6%82%A8%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%20Process%20%E7%B1%BB%E6%9D%A5%E5%88%9B%E5%BB%BA%E5%AD%90%E8%BF%9B%E7%A8%8B%EF%BC%8C%E7%84%B6%E5%90%8E%E4%BD%BF%E7%94%A8%20is_alive%20%28%29%20%E6%96%B9%E6%B3%95%E6%A3%80%E6%9F%A5%E8%BF%9B%E7%A8%8B%E6%98%AF%E5%90%A6%E8%BF%98%E6%B4%BB%E7%9D%80%EF%BC%8C%E5%A6%82%E6%9E%9C%E6%8C%82%E4%BA%86%E5%B0%B1%E9%87%8D%E5%90%AF%E5%AE%83%E3%80%82
+
+
+报错处理方案：
+MySQL server has gone away (BrokenPipeError(32, 'Broken pipe'))[MySQL插入内容超过4M]
+/etc/mysql/my.cnf配置文件中设置如下
+[mysqld]
+max_allowed_packet=33554432
+/etc/init.d/mysql restart重启mysql服务
+show VARIABLES like '%max_allowed_packet%';查看变量配置已经更改过来了
++--------------------------+------------+
+| Variable_name            | Value      |
++--------------------------+------------+
+| max_allowed_packet       | 33554432   |
+| slave_max_allowed_packet | 1073741824 |
++--------------------------+------------+
+
+
+
+会议0517
+1. 需要故障恢复功能
+2. 需要定时删除功能，而不是瞬时删除，确保安全

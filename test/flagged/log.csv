@@ -1,0 +1,4 @@
+prompt,image,num_inference_steps,some_pieces,height,width,is_save,output 0,output 1,flag,username,timestamp
+a little dog,,5,0,512,512,False,a little dog,C:\Users\10171\PycharmProjects\SDProject\test\flagged\output 1\tmpy149sw40.png,,,2023-05-19 15:42:15.298145
+,,5,512,512,,,,,2023-05-19 16:13:00.231409
+,,5,512,512,,,,,2023-05-19 16:13:01.691010
