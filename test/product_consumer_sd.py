@@ -165,6 +165,8 @@ class consumer(threading.Thread):
                                 if db:
                                     db.close()
                                 raise f"数据库连接失败,请检查数据库连接信息,具体{e}"
+                        else:
+                            logger.info(f"{select_sql}更新成功！")
 
 
                         logger.info(f"查询数据库中taskid:{taskid}的rqbody信息")
