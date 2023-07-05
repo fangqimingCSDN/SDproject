@@ -16,6 +16,15 @@ from SDProject.settings import records
 from service_inspection import Inspection
 from product_consumer_function import schedule_tag_del
 from logger import logger
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+
+scheduler = BackgroundScheduler()
+sheduler_id = "sdproject"
+scheduler_interval = 10
+
+
 config={
     "host": records["mysql_host"],
     "port": records["mysql_port"],
@@ -165,6 +174,8 @@ class consumer(threading.Thread):
                                 if db:
                                     db.close()
                                 raise f"数据库连接失败,请检查数据库连接信息,具体{e}"
+                        else:
+                            logger.info(f"{select_sql}更新成功！")
 
 
                         logger.info(f"查询数据库中taskid:{taskid}的rqbody信息")
@@ -253,8 +264,10 @@ class sdRequest(threading.Thread):
         logger.info("sdRequest done!!!")
 
 
+def start_scheduler(timestamp):
+    dt_object = datetime.fromtimestamp(timestamp)
+    logger.info(f"""周期调度开始时间是：{dt_object.strftime("%Y-%m-%d %H:%M:%S")}""")
 
-if __name__ == "__main__":
     threads = []
     queue = Queue(maxsize)
     t1 = product(queue, maxsize)
@@ -269,11 +282,30 @@ if __name__ == "__main__":
         t[0].start()
     logger.info("done, take time {}".format(time() - starttime))  # 获取执行总的时间
     while True:
+        close_label = False
         sleep(10)
         for t in threads:
             label = "死了！"
             if t[0].is_alive():
                 label = "活着！"
+            else:
+                close_label = True
             logger.info(f"{t[1]}, {label}")  # False. 线程是否存活
+            if close_label == True:
+                LOGGER.info('跳出循环循环....')
+                break
         logger.info('循环....')
+
+
+def scheduler_fun():
+    timestamp = int(time())
+    trigger = IntervalTrigger(seconds=scheduler_interval)
+    scheduler.add_job(start_scheduler, trigger, id=sheduler_id, args=(timestamp,))
+    scheduler.start()  # 开始调度器
+    while True:
+        sleep(20)
+        logger.info('''<循环>''')
+
+if __name__ == "__main__":
+    scheduler_fun()
 
